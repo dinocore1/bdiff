@@ -41,4 +41,21 @@ public class Block {
         Block o = (Block) obj;
         return o.offset == offset && o.length == length;
     }
+
+    /**
+     * Return true if the array of blocks are continuous. Continuous is defined as
+     * every blocks end is exactly the next blocks beginning (offset). If any block
+     * overlaps with any other, this method will return false. Also, the blocks must be
+     * ordered with their offset increasing.
+     * @param blocks
+     * @return
+     */
+    public static boolean isContinuous(Block[] blocks) {
+        for(int i=0;i<blocks.length - 1;i++) {
+            if(blocks[i].end() != blocks[i+1].offset) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
