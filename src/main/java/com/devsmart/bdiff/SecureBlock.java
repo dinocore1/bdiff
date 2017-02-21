@@ -16,4 +16,21 @@ public class SecureBlock extends Block {
         super(offset, len);
         this.secureHash = secureHash;
     }
+
+    @Override
+    public int hashCode() {
+        int retval = super.hashCode();
+        retval ^= secureHash.asInt();
+        return retval;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+
+        SecureBlock o = (SecureBlock) obj;
+        return super.equals(o) && secureHash.equals(o.secureHash);
+    }
 }

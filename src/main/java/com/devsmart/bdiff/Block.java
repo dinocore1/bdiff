@@ -24,4 +24,21 @@ public class Block {
         return offset + length;
     }
 
+    @Override
+    public int hashCode() {
+        int retval = (int) (offset & 0xffff);
+        retval ^= (offset >> 32) & 0xffff;
+        retval ^= length;
+        return retval;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj == null || obj.getClass() != obj.getClass()) {
+            return false;
+        }
+
+        Block o = (Block) obj;
+        return o.offset == offset && o.length == length;
+    }
 }
