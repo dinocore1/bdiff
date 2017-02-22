@@ -11,7 +11,7 @@ import static org.junit.Assert.*;
 public class BuzhashTest {
 
     @Test
-    public void buzhashRoll() {
+    public void testBuzHash() {
         /**
          * Buzhash is a rolling hash function, that means that the current hash sum is the sum of the last n consumed bytes.
          * When hashing both messages with a buzhasher with n=16, both messages will have the same hash sum, since the last

@@ -18,10 +18,8 @@ public class BDiffInputStream extends InputStream {
 
     public BDiffInputStream(SecureBlock[] blocks, BlockStorageReader storage) {
         Preconditions.checkArgument(Block.isContinuous(blocks));
-
         mBlocks = blocks;
         mStorageReader = storage;
-
         mLength = blocks[blocks.length-1].end();
     }
 
