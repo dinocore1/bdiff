@@ -3,15 +3,16 @@ package com.devsmart.bdiff;
 
 import com.devsmart.IOUtils;
 import com.google.common.hash.HashCode;
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class BDiffInputStreamTest {
 
@@ -26,7 +27,7 @@ public class BDiffInputStreamTest {
                 return null;
             }
 
-            return new ByteInputStream(block, block.length);
+            return new ByteArrayInputStream(block);
         }
     }
 
