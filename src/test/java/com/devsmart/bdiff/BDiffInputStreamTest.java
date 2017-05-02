@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ public class BDiffInputStreamTest {
         HashMap<HashCode, byte[]> mBlockTable = new HashMap<HashCode, byte[]>();
 
         @Override
-        public InputStream getBlock(HashCode id) {
+        public InputStream getBlock(HashCode id) throws IOException {
             byte[] block = mBlockTable.get(id);
             if(block == null) {
                 return null;

@@ -2,6 +2,7 @@ package com.devsmart.bdiff;
 
 import com.google.common.hash.HashCode;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 public interface BlockStorageReader {
@@ -11,5 +12,5 @@ public interface BlockStorageReader {
      * @param id
      * @return
      */
-    InputStream getBlock(HashCode id);
+    InputStream getBlock(HashCode id) throws IOException;
 }
