@@ -67,4 +67,32 @@ public class BDiffInputStreamTest {
         }
 
     }
+
+    @Test
+    public void testInputStream2() throws Exception {
+        SimpleBlockStorageReader storage = new SimpleBlockStorageReader();
+
+        putBlock(storage, 0);
+        putBlock(storage, 1);
+        putBlock(storage, 2);
+
+        SecureBlock[] blocks = new SecureBlock[] {
+                new SecureBlock(0, 10, HashCode.fromInt(0)),
+                new SecureBlock(10, 10, HashCode.fromInt(1)),
+                new SecureBlock(20, 10, HashCode.fromInt(2))
+        };
+
+        BDiffInputStream in = new BDiffInputStream(blocks, storage);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        IOUtils.pump(in, out, 7, null, true, true);
+
+        byte[] total = out.toByteArray();
+        assertNotNull(total);
+        assertEquals(30, total.length);
+
+        for(int i=0;i<30;i++){
+            assertEquals(i / 10, total[i]);
+        }
+    }
 }
