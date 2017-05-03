@@ -4,6 +4,8 @@ import com.devsmart.IOUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashCode;
 import com.google.common.io.BaseEncoding;
+import org.apache.commons.compress.compressors.CompressorException;
+import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,10 +16,16 @@ public class FlatFileBlockStorage implements BlockStorageReader, BlockStorageWri
     private static final Logger LOGGER = LoggerFactory.getLogger(FlatFileBlockStorage.class);
 
     private final File mRootDir;
+    private final String mCompressionType;
 
-    public FlatFileBlockStorage(File rootDir) {
+    public FlatFileBlockStorage(File rootDir, String compressionType) {
         Preconditions.checkArgument(rootDir != null && rootDir.isDirectory());
         mRootDir = rootDir;
+        mCompressionType = compressionType;
+    }
+
+    public FlatFileBlockStorage(File rootDir) {
+        this(rootDir, null);
     }
 
     private File toFile(HashCode id) {
@@ -38,15 +46,30 @@ public class FlatFileBlockStorage implements BlockStorageReader, BlockStorageWri
             throw new IOException(message);
         }
 
+        OutputStream out = new FileOutputStream(f);
+        if(mCompressionType != null) {
+            try {
+                out = new CompressorStreamFactory().createCompressorOutputStream(mCompressionType, out);
+            } catch (CompressorException e) {
+                throw new IOException(e);
+            }
+        }
 
-        FileOutputStream fout = new FileOutputStream(f);
-        IOUtils.pump(in, fout);
+        IOUtils.pump(in, out);
     }
 
     @Override
     public InputStream getBlock(HashCode id) throws IOException {
         final File f = toFile(id);
-        return new FileInputStream(f);
+        InputStream in = new FileInputStream(f);
+        if(mCompressionType != null) {
+            try {
+                in = new CompressorStreamFactory().createCompressorInputStream(mCompressionType, in);
+            } catch (CompressorException e) {
+                throw new IOException(e);
+            }
+        }
+        return in;
     }
 
     public void delete(HashCode id) {
