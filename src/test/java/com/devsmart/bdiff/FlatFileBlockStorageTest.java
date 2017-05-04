@@ -3,7 +3,6 @@ package com.devsmart.bdiff;
 import com.devsmart.IOUtils;
 import com.google.common.base.Throwables;
 import com.google.common.hash.HashCode;
-import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.hash.HashingInputStream;
 import org.junit.After;
@@ -51,7 +50,7 @@ public class FlatFileBlockStorageTest {
 
         final LinkedList<SecureBlock> blockList = new LinkedList<SecureBlock>();
 
-        DataBreakerInputStream in = new DataBreakerInputStream(createDatasource(), Hashing.sha1(), 50, 15);
+        DataBreakerInputStream in = new DataBreakerInputStream(createDatasource(), Hashing.sha1(), 50, 19);
         in.setCallback(new DataBreakerInputStream.Callback() {
             @Override
             public void onNewBlock(SecureBlock block, InputStream in) {

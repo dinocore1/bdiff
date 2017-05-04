@@ -3,7 +3,6 @@ package com.devsmart.bdiff;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -98,7 +97,7 @@ public class DataBreakerInputStream extends InputStream {
     }
 
     @Override
-    public int read(@NotNull byte[] b, int off, int len) throws IOException {
+    public int read(byte[] b, int off, int len) throws IOException {
         int bytesRead = mInputStream.read(b, off, len);
         if(bytesRead > 0) {
             for(int i=0;i<bytesRead;i++) {
