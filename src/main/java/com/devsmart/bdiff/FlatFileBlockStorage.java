@@ -83,4 +83,10 @@ public class FlatFileBlockStorage implements BlockStorageReader, BlockStorageWri
             }
         }
     }
+
+    public void wipe() {
+        for(File f : mRootDir.listFiles()) {
+            IOUtils.deleteTree(f);
+        }
+    }
 }
