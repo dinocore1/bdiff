@@ -8,7 +8,8 @@ import java.io.InputStream;
 public interface BlockStorageReader {
 
     /**
-     * get a block's input stream by its secure hashcode id
+     * get a block's input stream by its secure hashcode id.
+     * If <code>id</code> cannot be found, this function should return null.
      * @param id
      * @return
      */

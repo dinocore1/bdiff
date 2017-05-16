@@ -61,6 +61,9 @@ public class FlatFileBlockStorage implements BlockStorageReader, BlockStorageWri
     @Override
     public InputStream getBlock(HashCode id) throws IOException {
         final File f = toFile(id);
+        if(!f.exists()) {
+            return null;
+        }
         InputStream in = new FileInputStream(f);
         if(mCompressionType != null) {
             try {
