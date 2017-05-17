@@ -58,6 +58,27 @@ public class FlatFileBlockStorage implements BlockStorageReader, BlockStorageWri
         IOUtils.pump(in, out);
     }
 
+    public OutputStream putBlock(HashCode id) throws IOException {
+        final File f = toFile(id);
+        final File dir = f.getParentFile();
+        if(!dir.exists() && !dir.mkdirs()) {
+            final String message = "could not create dir: " + f.getParentFile();
+            LOGGER.error(message);
+            throw new IOException(message);
+        }
+
+        OutputStream out = new FileOutputStream(f);
+        if(mCompressionType != null) {
+            try {
+                out = new CompressorStreamFactory().createCompressorOutputStream(mCompressionType, out);
+            } catch (CompressorException e) {
+                throw new IOException(e);
+            }
+        }
+
+        return out;
+    }
+
     @Override
     public InputStream getBlock(HashCode id) throws IOException {
         final File f = toFile(id);
