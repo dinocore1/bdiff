@@ -30,6 +30,16 @@ public class BDiffInputStreamTest {
 
             return new ByteArrayInputStream(block);
         }
+
+        @Override
+        public long getBlockLen(HashCode id) {
+            byte[] block = mBlockTable.get(id);
+            if(block == null) {
+                return -1;
+            } else {
+                return block.length;
+            }
+        }
     }
 
     private static void putBlock(SimpleBlockStorageReader storage, int i) {

@@ -3,6 +3,8 @@ package com.devsmart.bdiff;
 import com.devsmart.IOUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.HashingInputStream;
 import com.google.common.io.BaseEncoding;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
@@ -16,16 +18,18 @@ public class FlatFileBlockStorage implements BlockStorageReader, BlockStorageWri
     private static final Logger LOGGER = LoggerFactory.getLogger(FlatFileBlockStorage.class);
 
     private final File mRootDir;
+    private final HashFunction mHashFunction;
     private final String mCompressionType;
 
-    public FlatFileBlockStorage(File rootDir, String compressionType) {
+    public FlatFileBlockStorage(File rootDir, HashFunction hashFunction, String compressionType) {
         Preconditions.checkArgument(rootDir != null && rootDir.isDirectory());
         mRootDir = rootDir;
+        mHashFunction = hashFunction;
         mCompressionType = compressionType;
     }
 
-    public FlatFileBlockStorage(File rootDir) {
-        this(rootDir, null);
+    public FlatFileBlockStorage(File rootDir, HashFunction hashFunction) {
+        this(rootDir, hashFunction, null);
     }
 
     private File toFile(HashCode id) {
@@ -55,28 +59,13 @@ public class FlatFileBlockStorage implements BlockStorageReader, BlockStorageWri
             }
         }
 
-        IOUtils.pump(in, out);
-    }
+        HashingInputStream hashIn = new HashingInputStream(mHashFunction, in);
+        IOUtils.pump(hashIn, out);
 
-    public OutputStream putBlock(HashCode id) throws IOException {
-        final File f = toFile(id);
-        final File dir = f.getParentFile();
-        if(!dir.exists() && !dir.mkdirs()) {
-            final String message = "could not create dir: " + f.getParentFile();
-            LOGGER.error(message);
-            throw new IOException(message);
+        if(!id.equals(hashIn.hash())){
+            f.delete();
+            throw new IOException("checksum did not match");
         }
-
-        OutputStream out = new FileOutputStream(f);
-        if(mCompressionType != null) {
-            try {
-                out = new CompressorStreamFactory().createCompressorOutputStream(mCompressionType, out);
-            } catch (CompressorException e) {
-                throw new IOException(e);
-            }
-        }
-
-        return out;
     }
 
     @Override
@@ -94,6 +83,17 @@ public class FlatFileBlockStorage implements BlockStorageReader, BlockStorageWri
             }
         }
         return in;
+    }
+
+    @Override
+    public long getBlockLen(HashCode id) {
+        final File f = toFile(id);
+        if(!f.exists()) {
+            return -1;
+        } else {
+            return f.length();
+        }
+
     }
 
     public void delete(HashCode id) {

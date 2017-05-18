@@ -14,4 +14,6 @@ public interface BlockStorageReader {
      * @return
      */
     InputStream getBlock(HashCode id) throws IOException;
+
+    long getBlockLen(HashCode id);
 }
