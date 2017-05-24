@@ -23,6 +23,14 @@ public class BDiffInputStream extends InputStream {
         mLength = blocks[blocks.length-1].end();
     }
 
+    @Override
+    public void close() throws IOException {
+        if(mCurrentBlockStream != null) {
+            mCurrentBlockStream.close();
+            mCurrentBlockStream = null;
+        }
+        super.close();
+    }
 
     @Override
     public int read() throws IOException {
