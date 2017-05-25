@@ -52,6 +52,11 @@ public class DataBreakerInputStream extends InputStream {
         mBlockBuffer = new ByteArrayOutputStream(1 << numBits);
     }
 
+    @Override
+    public void close() throws IOException {
+        mInputStream.close();
+    }
+
     public void setCallback(Callback cb) {
         mCallback = cb;
     }

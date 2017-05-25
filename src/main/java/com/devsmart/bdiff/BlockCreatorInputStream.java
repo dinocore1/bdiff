@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -22,6 +23,11 @@ public class BlockCreatorInputStream extends InputStream {
     private Hasher mSecureHash;
     private long mLast = 0;
     private long mPos = 0;
+
+
+    private static final int SECURE_HASH_BUF_SIZE = 16 * 1024;
+    private byte[] mSecureHashBuf = new byte[SECURE_HASH_BUF_SIZE];
+    private int mSecureHashPos = 0;
 
 
     /**
@@ -46,6 +52,11 @@ public class BlockCreatorInputStream extends InputStream {
         mBuzHash = new Buzhash(windowSize);
         mBuzHash.reset();
         mSecureHash = mSecureHashFunction.newHasher();
+    }
+
+    @Override
+    public void close() throws IOException {
+        mInputStream.close();
     }
 
     public void setCallback(Callback cb) {
@@ -90,16 +101,34 @@ public class BlockCreatorInputStream extends InputStream {
         return data;
     }
 
+    private void putByteSecureHash(byte data) {
+        if(mSecureHashPos == SECURE_HASH_BUF_SIZE) {
+            mSecureHash.putBytes(mSecureHashBuf, 0, SECURE_HASH_BUF_SIZE);
+            mSecureHashPos = 0;
+        }
+
+        mSecureHashBuf[mSecureHashPos++] = data;
+    }
+
+    private void flushSecureHashBuf() {
+        mSecureHash.putBytes(mSecureHashBuf, 0, mSecureHashPos);
+        mSecureHashPos = 0;
+    }
+
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
+
         int bytesRead = mInputStream.read(b, off, len);
         if(bytesRead > 0) {
             for(int i=0;i<bytesRead;i++) {
                 final byte data = b[off + i];
                 final long hash = mBuzHash.addByte(data);
-                mSecureHash.putByte(data);
+
+                putByteSecureHash(data);
+
                 mPos++;
                 if((hash & mMask) == 0) {
+                    flushSecureHashBuf();
                     SecureBlock block = new SecureBlock(mLast, mPos - mLast, mSecureHash.hash());
 
                     newBlock(block);
@@ -109,12 +138,12 @@ public class BlockCreatorInputStream extends InputStream {
                     mSecureHash = mSecureHashFunction.newHasher();
                 }
             }
+
         } else {
             if(mPos - mLast > 0 && !mEndReached) {
                 mEndReached = true;
+                flushSecureHashBuf();
                 SecureBlock block = new SecureBlock(mLast, mPos - mLast, mSecureHash.hash());
-
-
                 newBlock(block);
             }
         }

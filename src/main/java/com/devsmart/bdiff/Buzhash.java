@@ -7,7 +7,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class Buzhash {
 
     private static final int WORD_SIZE = 64;
-    private static long[] HASHMAP;
+    private static final long[] HASHMAP;
 
     static {
         HASHMAP = new long[256];
@@ -37,10 +37,10 @@ public class Buzhash {
         mHashvalue = Long.rotateLeft(mHashvalue, 1);
 
         if(++mBytesAdded > mWindowSize) {
-            mHashvalue ^= Long.rotateLeft(hash(mWindow[mBufPos]), mWindowSize);
+            mHashvalue ^= Long.rotateLeft(HASHMAP[0xff & mWindow[mBufPos]], mWindowSize);
         }
 
-        mHashvalue ^= hash(b);
+        mHashvalue ^= HASHMAP[0xff & b];
 
         mWindow[mBufPos] = b;
         mBufPos = (mBufPos + 1) % mWindowSize;
@@ -56,9 +56,5 @@ public class Buzhash {
 
     public long getHashCode() {
         return mHashvalue;
-    }
-
-    private long hash(byte b) {
-        return HASHMAP[0xff & b];
     }
 }
