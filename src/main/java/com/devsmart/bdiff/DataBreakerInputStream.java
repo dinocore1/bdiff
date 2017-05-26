@@ -1,5 +1,6 @@
 package com.devsmart.bdiff;
 
+import com.devsmart.bdiff.buzhash.Buzhash;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;

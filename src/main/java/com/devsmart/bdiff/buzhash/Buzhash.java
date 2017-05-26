@@ -1,4 +1,4 @@
-package com.devsmart.bdiff;
+package com.devsmart.bdiff.buzhash;
 
 import java.util.Random;
 

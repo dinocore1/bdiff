@@ -1,6 +1,7 @@
 package com.devsmart.bdiff;
 
 import com.devsmart.bdiff.buzhash.Buzhash;
+import com.devsmart.bdiff.buzhash.NativeBuzhash;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
@@ -9,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
-public class BlockCreatorInputStream extends InputStream {
+public class NativeBlockCreatorInputStream extends InputStream {
 
     public interface Callback {
         void onNewBlock(SecureBlock block);
@@ -19,15 +20,12 @@ public class BlockCreatorInputStream extends InputStream {
     private final HashFunction mSecureHashFunction;
     private final long mMask;
     private Callback mCallback;
-    private Buzhash mBuzHash;
+    private NativeBuzhash mBuzHash;
     private Hasher mSecureHash;
     private long mLast = 0;
     private long mPos = 0;
 
-
-    private static final int SECURE_HASH_BUF_SIZE = 16 * 1024;
-    private byte[] mSecureHashBuf = new byte[SECURE_HASH_BUF_SIZE];
-    private int mSecureHashPos = 0;
+    private byte[] mByteBuf = new byte[1];
 
 
     /**
@@ -40,7 +38,7 @@ public class BlockCreatorInputStream extends InputStream {
      * @param windowSize the rolling hash byte window size. A good value is 50.
      * @param numBits the number of bits in the rolling hash that must match to define a delineation. A good value is 12.
      */
-    public BlockCreatorInputStream(InputStream in, HashFunction secureHash, int windowSize, int numBits) {
+    public NativeBlockCreatorInputStream(InputStream in, HashFunction secureHash, int windowSize, int numBits) {
         Preconditions.checkNotNull(in);
         Preconditions.checkNotNull(secureHash);
         Preconditions.checkArgument(windowSize > 0 && numBits > 0);
@@ -49,7 +47,7 @@ public class BlockCreatorInputStream extends InputStream {
         mInputStream = in;
         mSecureHashFunction = secureHash;
         mMask = (1 << numBits) -1;
-        mBuzHash = new Buzhash(windowSize);
+        mBuzHash = NativeBuzhash.create(windowSize);
         mBuzHash.reset();
         mSecureHash = mSecureHashFunction.newHasher();
     }
@@ -73,17 +71,25 @@ public class BlockCreatorInputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
+
+        throw new UnsupportedOperationException("not implemented");
+
+        /*
         final int data = mInputStream.read();
         if(data < 0) {
             if(mPos - mLast > 0 && !mEndReached) {
                 mEndReached = true;
                 SecureBlock block = new SecureBlock(mLast, mPos - mLast, mSecureHash.hash());
-
                 newBlock(block);
 
             }
             return data;
         }
+
+        mByteBuf[0] = (byte) data;
+        int foundOffset = mBuzHash.addBytes(mByteBuf, 0, 1, mMask);
+
+
         final long hash = mBuzHash.addByte((byte)data);
         mSecureHash.putByte((byte)data);
         mPos++;
@@ -99,54 +105,45 @@ public class BlockCreatorInputStream extends InputStream {
         }
 
         return data;
+        */
     }
 
-    private void putByteSecureHash(byte data) {
-        if(mSecureHashPos == SECURE_HASH_BUF_SIZE) {
-            mSecureHash.putBytes(mSecureHashBuf, 0, SECURE_HASH_BUF_SIZE);
-            mSecureHashPos = 0;
+    public int consumeBytes(byte[] b, int off, int len) throws IOException {
+        int foundOffset = mBuzHash.addBytes(b, off, len, mMask);
+        if(foundOffset < 0) {
+            mSecureHash.putBytes(b, off, len);
+            mPos += len;
+            return len;
+        } else {
+            mSecureHash.putBytes(b, off, foundOffset+1);
+            mPos += foundOffset+1;
+            SecureBlock block = new SecureBlock(mLast, mPos - mLast, mSecureHash.hash());
+            newBlock(block);
+
+            mLast = mPos;
+            mBuzHash.reset();
+            mSecureHash = mSecureHashFunction.newHasher();
+            return foundOffset+1;
         }
-
-        mSecureHashBuf[mSecureHashPos++] = data;
-    }
-
-    private void flushSecureHashBuf() {
-        mSecureHash.putBytes(mSecureHashBuf, 0, mSecureHashPos);
-        mSecureHashPos = 0;
     }
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
-
-        int bytesRead = mInputStream.read(b, off, len);
-        if(bytesRead > 0) {
-            for(int i=0;i<bytesRead;i++) {
-                final byte data = b[off + i];
-                final long hash = mBuzHash.addByte(data);
-
-                putByteSecureHash(data);
-
-                mPos++;
-                if((hash & mMask) == 0) {
-                    flushSecureHashBuf();
-                    SecureBlock block = new SecureBlock(mLast, mPos - mLast, mSecureHash.hash());
-
-                    newBlock(block);
-
-                    mLast = mPos;
-                    mBuzHash.reset();
-                    mSecureHash = mSecureHashFunction.newHasher();
-                }
-            }
-
-        } else {
-            if(mPos - mLast > 0 && !mEndReached) {
-                mEndReached = true;
-                flushSecureHashBuf();
-                SecureBlock block = new SecureBlock(mLast, mPos - mLast, mSecureHash.hash());
-                newBlock(block);
-            }
+        final int bytesRead = mInputStream.read(b, off, len);
+        if(bytesRead < 0 && mPos - mLast > 0 && !mEndReached) {
+            mEndReached = true;
+            SecureBlock block = new SecureBlock(mLast, mPos - mLast, mSecureHash.hash());
+            newBlock(block);
+            return -1;
         }
+
+        int bytesLeft = bytesRead;
+        while(bytesLeft > 0) {
+            len = consumeBytes(b, off, bytesLeft);
+            off += len;
+            bytesLeft -= len;
+        }
+
         return bytesRead;
     }
 }
