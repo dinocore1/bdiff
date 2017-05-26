@@ -1,0 +1,72 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+sourceCompatibility = 1.7
+
+dependencies {
+    compile project(':bdiff')
+    testCompile 'junit:junit:4.12'
+}
+
+tasks.withType(Test) {
+    println "${projectDir}/build"
+    systemProperty "java.library.path", "${projectDir}/build"
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from 'build/docs/javadoc'
+}
+
+task sourceJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar
+    archives sourceJar
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+
+        //beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+        repository(url: "http://jenkins2.sciaps.local/nexus/content/repositories/releases/") {
+            authentication(userName: 'sciaps', password: 'password')
+        }
+
+        snapshotRepository(url: "http://jenkins2.sciaps.local/nexus/content/repositories/snapshots/") {
+            authentication(userName: 'sciaps', password: 'password')
+        }
+
+        pom.project {
+            name 'bdiff-native'
+            description 'Binary diff library native'
+            url 'http://github.com/dinocore1/bdiff'
+
+            scm {
+                url 'scm:git@github.com:dinocore1/bdiff.git'
+                connection 'scm:git@github.com:dinocore1/bdiff.git'
+                developerConnection 'scm:git@github.com:dinocore1/bdiff.git'
+            }
+
+            licenses {
+                license {
+                    name 'MIT License'
+                    url 'https://github.com/dinocore1/ubjson/blob/master/LICENSE.txt'
+                    distribution 'repo'
+                }
+            }
+
+            developers {
+                developer {
+                    id 'psoucy'
+                    name 'Paul Soucy'
+                }
+            }
+        }
+
+    }
+}

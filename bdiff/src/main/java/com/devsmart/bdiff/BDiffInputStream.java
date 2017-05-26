@@ -1,6 +1,9 @@
 package com.devsmart.bdiff;
 
 import com.google.common.base.Preconditions;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.HashingInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,13 +17,15 @@ public class BDiffInputStream extends InputStream {
     private final SecureBlock[] mBlocks;
     private final BlockStorageReader mStorageReader;
     private final long mLength;
+    private final HashFunction mSecureHash;
     private InputStream mCurrentBlockStream;
 
-    public BDiffInputStream(SecureBlock[] blocks, BlockStorageReader storage) {
+    public BDiffInputStream(SecureBlock[] blocks, BlockStorageReader storage, HashFunction secureHash) {
         Preconditions.checkArgument(Block.isContinuous(blocks));
         mBlocks = blocks;
         mStorageReader = storage;
         mLength = blocks[blocks.length-1].end();
+        mSecureHash = secureHash;
     }
 
     @Override
@@ -32,6 +37,27 @@ public class BDiffInputStream extends InputStream {
         super.close();
     }
 
+    private void getNextBlock() throws IOException {
+        if(mCurrentBlockStream != null) {
+            mCurrentBlockStream.close();
+        }
+
+        if(mSecureHash != null) {
+            HashCode currentBlockHash = ((HashingInputStream) mCurrentBlockStream).hash();
+            if(!currentBlockHash.equals(mCurrentBlock.secureHash)) {
+                throw new BadBlockIOException(mCurrentBlock, "checksums do not match");
+            }
+        }
+
+        mCurrentBlock = mBlocks[mBlockNum++];
+        mCurrentBlockStream = mStorageReader.getBlock(mCurrentBlock.secureHash);
+        if(mCurrentBlockStream == null) {
+            throw new BadBlockIOException(mCurrentBlock, "block is null");
+        } else if(mSecureHash != null) {
+            mCurrentBlockStream = new HashingInputStream(mSecureHash, mCurrentBlockStream);
+        }
+    }
+
     @Override
     public int read() throws IOException {
         if(mOffset >= mLength) {
@@ -39,20 +65,12 @@ public class BDiffInputStream extends InputStream {
         }
 
         if(mCurrentBlock == null || mOffset >= mCurrentBlock.end()) {
-            if(mCurrentBlockStream != null){
-                mCurrentBlockStream.close();
-            }
-
-            mCurrentBlock = mBlocks[mBlockNum++];
-            mCurrentBlockStream = mStorageReader.getBlock(mCurrentBlock.secureHash);
-            if(mCurrentBlockStream == null) {
-                throw new IOException("block is null");
-            }
+            getNextBlock();
         }
 
         int retval = mCurrentBlockStream.read();
         if(retval < 0) {
-            throw new IOException("block stream is shorter than expected");
+            throw new BadBlockIOException(mCurrentBlock, "block stream is shorter than expected");
         }
 
         mOffset++;
@@ -66,15 +84,7 @@ public class BDiffInputStream extends InputStream {
         }
 
         if(mCurrentBlock == null || mOffset >= mCurrentBlock.end()) {
-            if(mCurrentBlockStream != null) {
-                mCurrentBlockStream.close();
-            }
-
-            mCurrentBlock = mBlocks[mBlockNum++];
-            mCurrentBlockStream = mStorageReader.getBlock(mCurrentBlock.secureHash);
-            if(mCurrentBlockStream == null) {
-                throw new IOException("block is null");
-            }
+            getNextBlock();
         }
 
         long blockOffset = mOffset - mCurrentBlock.offset;

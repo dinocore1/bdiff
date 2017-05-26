@@ -67,7 +67,7 @@ public class FlatFileBlockStorageTest {
         IOUtils.pump(in, new NullOutputStream());
 
         SecureBlock[] blocks = blockList.toArray(new SecureBlock[blockList.size()]);
-        BDiffInputStream bin = new BDiffInputStream(blocks, storage);
+        BDiffInputStream bin = new BDiffInputStream(blocks, storage, null);
 
         final HashCode finalHash = computeHash(bin);
 

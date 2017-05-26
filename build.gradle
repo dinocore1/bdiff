@@ -1,19 +1,12 @@
-group 'com.devsmart'
-version '1.0.1'
+allprojects {
+    group = 'com.devsmart'
+    version = '1.0.2-SNAPSHOT'
+    description = 'Binary diff library'
 
-apply plugin: 'java'
-apply plugin: 'maven'
-
-sourceCompatibility = 1.7
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    compile 'org.slf4j:slf4j-api:1.7.7'
-    compile 'com.dev-smart:devsmart-core:0.1.6'
-    compile 'org.apache.commons:commons-compress:1.13'
-    compile 'com.google.guava:guava:19.0'
-    testCompile 'junit:junit:4.12'
+    repositories {
+        jcenter()
+        maven {
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
+    }
 }

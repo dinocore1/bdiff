@@ -64,7 +64,7 @@ public class BDiffInputStreamTest {
                 new SecureBlock(20, 10, HashCode.fromInt(2))
         };
 
-        BDiffInputStream in = new BDiffInputStream(blocks, storage);
+        BDiffInputStream in = new BDiffInputStream(blocks, storage, null);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         IOUtils.pump(in, out);
@@ -93,7 +93,7 @@ public class BDiffInputStreamTest {
                 new SecureBlock(20, 10, HashCode.fromInt(2))
         };
 
-        BDiffInputStream in = new BDiffInputStream(blocks, storage);
+        BDiffInputStream in = new BDiffInputStream(blocks, storage, null);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         IOUtils.pump(in, out, 7, null, true, true);
