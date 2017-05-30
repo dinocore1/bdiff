@@ -1,7 +1,6 @@
 package com.devsmart.bdiff;
 
-import com.devsmart.bdiff.buzhash.Buzhash;
-import com.devsmart.bdiff.buzhash.NativeBuzhash;
+import com.devsmart.bdiff.buzhash.NativeBuzhash64;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
@@ -20,7 +19,7 @@ public class NativeBlockCreatorInputStream extends InputStream {
     private final HashFunction mSecureHashFunction;
     private final long mMask;
     private Callback mCallback;
-    private NativeBuzhash mBuzHash;
+    private NativeBuzhash64 mBuzHash;
     private Hasher mSecureHash;
     private long mLast = 0;
     private long mPos = 0;
@@ -47,7 +46,7 @@ public class NativeBlockCreatorInputStream extends InputStream {
         mInputStream = in;
         mSecureHashFunction = secureHash;
         mMask = (1 << numBits) -1;
-        mBuzHash = NativeBuzhash.create(windowSize);
+        mBuzHash = NativeBuzhash64.create(windowSize);
         mBuzHash.reset();
         mSecureHash = mSecureHashFunction.newHasher();
     }

@@ -1,6 +1,6 @@
 package com.devsmart.bdiff;
 
-import com.devsmart.bdiff.buzhash.Buzhash;
+import com.devsmart.bdiff.buzhash.Buzhash64;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
@@ -19,7 +19,7 @@ public class BlockCreatorInputStream extends InputStream {
     private final HashFunction mSecureHashFunction;
     private final long mMask;
     private Callback mCallback;
-    private Buzhash mBuzHash;
+    private Buzhash64 mBuzHash;
     private Hasher mSecureHash;
     private long mLast = 0;
     private long mPos = 0;
@@ -49,7 +49,7 @@ public class BlockCreatorInputStream extends InputStream {
         mInputStream = in;
         mSecureHashFunction = secureHash;
         mMask = (1 << numBits) -1;
-        mBuzHash = new Buzhash(windowSize);
+        mBuzHash = new Buzhash64(windowSize);
         mBuzHash.reset();
         mSecureHash = mSecureHashFunction.newHasher();
     }

@@ -42,7 +42,7 @@ static inline uint64_t rotr64 (uint64_t n, unsigned int c) {
     return (n>>c) | (n<<( (-c)&mask ));
 }
 
-static const char* CLASS_NAME = "com/devsmart/bdiff/buzhash/NativeBuzhash";
+static const char* CLASS_NAME = "com/devsmart/bdiff/buzhash/NativeBuzhash64";
 
 static int64_t HASHMAP[256] = {
         -4964420948893066024,
@@ -397,7 +397,7 @@ static jlong native_hash(JNIEnv* env, jobject obj) {
 
 JNIEXPORT JNINativeMethod gBuzhashMethods[] = {
         {"native_finalize", "()V", (void*) native_finalize },
-        {"create", "(I)Lcom/devsmart/bdiff/buzhash/NativeBuzhash;", (void*) native_create},
+        {"create", "(I)Lcom/devsmart/bdiff/buzhash/NativeBuzhash64;", (void*) native_create},
         {"addBytes", "([BIIJ)I", (void*) native_addBytes},
         {"reset", "()V", (void*) native_reset},
         {"hash", "()J", (void*) native_hash}

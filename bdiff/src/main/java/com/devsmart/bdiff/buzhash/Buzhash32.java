@@ -4,27 +4,27 @@ import java.util.Random;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-public class Buzhash {
+public class Buzhash32 {
 
-    private static final int WORD_SIZE = 64;
-    private static final long[] HASHMAP;
+    private static final int WORD_SIZE = 32;
+    private static final int[] HASHMAP;
 
     static {
-        HASHMAP = new long[256];
+        HASHMAP = new int[256];
         Random r = new Random(1);
         for(int i=0;i<HASHMAP.length;i++){
-            HASHMAP[i] = r.nextLong();
+            HASHMAP[i] = (int) r.nextLong();
         }
     }
 
 
     private final int mWindowSize;
     private final byte[] mWindow;
-    private long mHashvalue;
+    private int mHashvalue;
     private int mBufPos;
-    private long mBytesAdded ;
+    private long mBytesAdded;
 
-    public Buzhash(int windowSize) {
+    public Buzhash32(int windowSize) {
         checkArgument(windowSize > 0 && windowSize < WORD_SIZE);
         mWindowSize = windowSize;
         mWindow = new byte[mWindowSize];
@@ -32,12 +32,12 @@ public class Buzhash {
     }
 
 
-    public long addByte(final byte b) {
+    public int addByte(final byte b) {
 
-        mHashvalue = Long.rotateLeft(mHashvalue, 1);
+        mHashvalue = Integer.rotateLeft(mHashvalue, 1);
 
         if(++mBytesAdded > mWindowSize) {
-            mHashvalue ^= Long.rotateLeft(HASHMAP[0xff & mWindow[mBufPos]], mWindowSize);
+            mHashvalue ^= Integer.rotateLeft(HASHMAP[0xff & mWindow[mBufPos]], mWindowSize);
         }
 
         mHashvalue ^= HASHMAP[0xff & b];

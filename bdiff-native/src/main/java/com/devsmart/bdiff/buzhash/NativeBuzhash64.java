@@ -1,7 +1,7 @@
 package com.devsmart.bdiff.buzhash;
 
 
-public class NativeBuzhash {
+public class NativeBuzhash64 {
 
     static {
         System.loadLibrary("buzhash");
@@ -9,7 +9,7 @@ public class NativeBuzhash {
 
     private long mPtr;
 
-    private NativeBuzhash() {
+    private NativeBuzhash64() {
     }
 
     @Override
@@ -18,7 +18,7 @@ public class NativeBuzhash {
         super.finalize();
     }
 
-    native public static NativeBuzhash create(int mWindowSize);
+    native public static NativeBuzhash64 create(int mWindowSize);
     private native void native_finalize();
 
 
