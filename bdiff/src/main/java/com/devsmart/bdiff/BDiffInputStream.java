@@ -88,7 +88,8 @@ public class BDiffInputStream extends InputStream {
         }
 
         long blockOffset = mOffset - mCurrentBlock.offset;
-        int retval = mCurrentBlockStream.read(b, off, (int) Math.min(len, mCurrentBlock.length - blockOffset));
+        int blockOffsetDiff = (int) (mCurrentBlock.length - blockOffset);
+        int retval = mCurrentBlockStream.read(b, off, (len < blockOffsetDiff) ? len : blockOffsetDiff);
         if(retval < 0) {
             throw new BadBlockIOException(mCurrentBlock, "block stream is shorter than expected");
         }
