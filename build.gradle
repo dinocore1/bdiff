@@ -1,6 +1,6 @@
 allprojects {
     group = 'com.devsmart'
-    version = '1.0.3-SNAPSHOT'
+    version = '1.0.2-SNAPSHOT'
     description = 'Binary diff library'
 
     repositories {
